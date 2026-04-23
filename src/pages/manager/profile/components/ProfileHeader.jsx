@@ -10,7 +10,7 @@ const ProfileHeader = ({ profileData, onEditClick, onAvatarUpload }) => {
       {/* Cover Image */}
       <div
         className="relative h-24 bg-center bg-cover sm:h-28 md:h-32 lg:h-40"
-        style={{ backgroundImage: 'url(/images/3.webp)' }}
+        style={{ backgroundImage: 'url(/images/31.webp)' }}
       />
 
       <div className="px-4 pb-8 sm:px-6 lg:px-8">

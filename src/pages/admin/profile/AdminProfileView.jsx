@@ -362,7 +362,7 @@ const ProfileView = () => {
             <div
               className="relative bg-center bg-cover h-28 sm:h-32"
               style={{
-                backgroundImage: "url(/images/3.webp)",
+                backgroundImage: "url(/images/31.webp)",
               }}
             />
 

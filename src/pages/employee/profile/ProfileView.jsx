@@ -447,7 +447,7 @@ const ProfileView = () => {
           <div className="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-xl">
             <div
               className="relative bg-center bg-cover h-28 sm:h-32"
-              style={{ backgroundImage: 'url(/images/3.webp)' }}
+              style={{ backgroundImage: 'url(/images/31.webp)' }}
             />
             <div className="px-5 pb-8 sm:px-8">
               <div className="flex flex-col gap-5 -mt-14 sm:flex-row sm:items-end sm:justify-between">
