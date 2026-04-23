@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { formatTime } from '../utils/dateFormatters';
 import { STATUS_COLORS } from '../utils/attendanceConfig';
 
-export const AttendanceList = ({ records }) => {
+export const AttendanceList = ({ records, currentMonthString }) => {
   const getStatusLabel = (status) => {
     if (!status) return 'Unknown';
     if (status === 'leave') return 'On Leave';
@@ -24,7 +24,7 @@ export const AttendanceList = ({ records }) => {
       <div className="p-6 border-b border-gray-100 dark:border-slate-700">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Attendance Records</h2>
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-          Showing {records.length} records from the last 5 days
+          Showing {records.length} records for {currentMonthString}
         </p>
       </div>
       
@@ -100,7 +100,7 @@ export const AttendanceList = ({ records }) => {
         }) : (
           <div className="p-8 text-center">
             <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-slate-600" />
-            <p className="text-gray-500 dark:text-slate-400">No attendance records in the last 5 days</p>
+            <p className="text-gray-500 dark:text-slate-400">No attendance records for this month</p>
             <p className="mt-1 text-sm text-gray-400 dark:text-slate-500">Start by checking in from your dashboard</p>
           </div>
         )}
