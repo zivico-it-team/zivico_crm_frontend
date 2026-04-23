@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
+import * as XLSX from 'xlsx';
 import MainLayout from '@/components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +19,41 @@ import { useBreakData } from './hooks/useBreakData';
 // Utils
 import { VIEW_MODES } from './utils/attendanceConfig';
 
+const pad2 = (value) => String(value).padStart(2, '0');
+
+const formatExportDate = (date) => {
+  if (!date) return '';
+  const parsed = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return parsed.toLocaleDateString('en-CA');
+};
+
+const formatExportTime = (value, fallback) => {
+  if (!value) return fallback;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return fallback;
+  return parsed.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const getStatusLabel = (status) => {
+  if (!status) return 'Unknown';
+  if (status === 'leave') return 'On Leave';
+  if (status === 'off') return 'Off';
+  if (status === 'late') return 'Late';
+  if (status === 'present') return 'Present';
+  if (status === 'absent') return 'Absent';
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+const sanitizeFileNamePart = (value) =>
+  String(value || 'employee')
+    .trim()
+    .replace(/[^a-z0-9_-]+/gi, '_')
+    .replace(/^_+|_+$/g, '') || 'employee';
+
 const MyAttendanceView = () => {
   const { currentUser } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -31,7 +67,6 @@ const MyAttendanceView = () => {
     isLoading: attendanceLoading,
     loadAttendanceData,
     getCurrentMonthRecords,
-    exportToCSV
   } = useAttendanceData(currentUser, currentDate);
 
   const {
@@ -39,22 +74,61 @@ const MyAttendanceView = () => {
     getCurrentMonthBreaks
   } = useBreakData(currentUser, currentDate);
 
-  // Export CSV
+  // Export Excel
   const handleExport = () => {
     if (!currentUser) return;
 
-    const csv = exportToCSV();
-    if (!csv) return;
+    const records = getCurrentMonthRecords();
+    if (!records.length) return;
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `attendance_${currentUser.name || 'user'}_${currentDate.getMonth() + 1}_${currentDate.getFullYear()}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const monthLabel = currentDate.toLocaleString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    });
+
+    const employeeName = currentUser.name || currentUser.fullName || currentUser.username || 'Employee';
+    const workbook = XLSX.utils.book_new();
+
+    const summarySheet = XLSX.utils.aoa_to_sheet([
+      ['Monthly Attendance Report'],
+      [],
+      ['Employee', employeeName],
+      ['Email', currentUser.email || ''],
+      ['Username', currentUser.username || currentUser.userName || ''],
+      ['Month', monthLabel],
+      ['Present Days', Number(stats.present || 0)],
+      ['Absent Days', Number(stats.absent || 0)],
+      ['Late Arrivals', Number(stats.late || 0)],
+      ['Total Hours', Number(stats.totalHours || 0)],
+      ['Average Hours', Number(stats.avgHours || 0)],
+    ]);
+    summarySheet['!cols'] = [{ wch: 24 }, { wch: 32 }];
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Monthly Summary');
+
+    const attendanceRows = records.map((row) => ({
+      Date: formatExportDate(row.date),
+      Day: row.date.toLocaleDateString('en-US', { weekday: 'short' }),
+      'Check In': formatExportTime(row.check_in_time, 'Not Checked In'),
+      'Check Out': formatExportTime(row.check_out_time, 'Not Checked Out'),
+      Status: getStatusLabel(row.status),
+      'Working Hours': Number(row.working_hours || 0),
+    }));
+
+    const attendanceSheet = XLSX.utils.json_to_sheet(attendanceRows);
+    attendanceSheet['!cols'] = [
+      { wch: 14 },
+      { wch: 10 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 14 },
+      { wch: 14 },
+    ];
+    XLSX.utils.book_append_sheet(workbook, attendanceSheet, 'Attendance Records');
+
+    const fileName = `attendance_${sanitizeFileNamePart(employeeName)}_${currentDate.getFullYear()}_${pad2(
+      currentDate.getMonth() + 1
+    )}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
   };
 
   // Handle refresh
@@ -176,7 +250,7 @@ const MyAttendanceView = () => {
                 disabled={currentMonthRecords.length === 0}
               >
                 <Download className="w-4 h-4" />
-                Export
+                Export Excel
               </Button>
               <Button
                 variant="outline"
@@ -225,6 +299,7 @@ const MyAttendanceView = () => {
           ) : viewMode === VIEW_MODES.LIST ? (
             <AttendanceList
               records={currentMonthRecords}
+              currentMonthString={currentMonthString}
             />
           ) : (
             <BreakRecords
