@@ -332,7 +332,7 @@ const ManagerProfileView = () => {
         <title>
           {profileData?.personalInfo?.fullName || (currentUser?.role === 'hr' ? 'HR' : 'Manager')}
           {' - '}
-          {currentUser?.role === 'hr' ? 'HR' : 'Manager'} Profile | HRMS
+          {currentUser?.role === 'hr' ? 'HR' : 'Manager'} Profile | CRM
         </title>
       </Helmet>
 
