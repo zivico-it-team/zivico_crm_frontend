@@ -333,7 +333,7 @@ const ImportantDocumentsView = ({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Total Documents</p>
-                  <p className="mt-1 text-3xl font-semibold text-slate-900">{stats.total}</p>
+                  <p className="mt-1 text-3xl font-semibold text-slate-9000">{stats.total}</p>
                 </div>
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                   <FileText className="h-5 w-5" />
@@ -373,7 +373,7 @@ const ImportantDocumentsView = ({
                   <UploadCloud className="h-5 w-5" />
                 </span>
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900">Publish Important Document</h2>
+                  <h2 className="text-base font-semibold text-slate-9000">Publish Important Document</h2>
                   <p className="mt-1 text-sm text-slate-500">
                     Upload a PDF or image. Adding an important note is optional, and managers and employees will receive a notification.
                   </p>
@@ -412,7 +412,7 @@ const ImportantDocumentsView = ({
                   <ShieldCheck className="h-5 w-5" />
                 </span>
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900">View Only Access</h2>
+                  <h2 className="text-base font-semibold text-slate-9000">View Only Access</h2>
                   <p className="mt-1 text-sm text-slate-500">
                     HR and admin publish these documents. You can open and read them here, but only HR/admin can upload new files.
                   </p>
