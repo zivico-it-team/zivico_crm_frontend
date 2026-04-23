@@ -198,6 +198,15 @@ const STATUS_META = {
   default: { label: 'No Record', filter: 'no-record', className: 'bg-slate-100 text-slate-600 border border-slate-200' },
 };
 
+const EMPLOYMENT_STATUS_OPTIONS = [
+  { value: 'active', label: 'Active Employees' },
+  { value: 'inactive', label: 'Inactive Employees' },
+  { value: 'all', label: 'All Employees' },
+];
+
+const getEmploymentStatusLabel = (value) =>
+  EMPLOYMENT_STATUS_OPTIONS.find((option) => option.value === value)?.label || 'Active Employees';
+
 const getStatusMeta = (code) => STATUS_META[code] || STATUS_META.default;
 const countStatusDays = (days = {}, code) => Object.values(days).filter((s) => s === code).length;
 const getPeriodLabel = (period) => {
@@ -235,6 +244,7 @@ const HRAttendanceView = () => {
   const [customEndDate, setCustomEndDate] = useState(getTodayDateKey);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPeriod, setFilterPeriod] = useState('today');
+  const [employmentStatusFilter, setEmploymentStatusFilter] = useState('active');
   const [attendanceViewMode, setAttendanceViewMode] = useState('table');
   const [filterReportPanelOpen, setFilterReportPanelOpen] = useState(true);
 
@@ -301,16 +311,18 @@ const HRAttendanceView = () => {
   const activeRangeKey = useMemo(() => `${toDateKey(activeRange.start)}_${toDateKey(activeRange.end)}`, [activeRange.end, activeRange.start]);
 
   const fetchMonthExport = useCallback(async (year, month) => {
-    const key = `${year}-${pad2(month)}`;
+    const key = `${employmentStatusFilter}_${year}-${pad2(month)}`;
     if (cacheRef.current.has(key)) return cacheRef.current.get(key);
-    const { data } = await api.get('/attendance-tracker/export', { params: { year, month } });
+    const { data } = await api.get('/attendance-tracker/export', {
+      params: { year, month, employmentStatus: employmentStatusFilter },
+    });
     const normalized = {
       rows: Array.isArray(data?.rows) ? data.rows : [],
       detailRows: Array.isArray(data?.detailRows) ? data.detailRows : [],
     };
     cacheRef.current.set(key, normalized);
     return normalized;
-  }, []);
+  }, [employmentStatusFilter]);
 
   const fetchDetailsByRange = useCallback(async (start, end) => {
     const monthRequests = listMonthsInRange(start, end);
@@ -325,7 +337,9 @@ const HRAttendanceView = () => {
     const loadEmployees = async () => {
       try {
         setEmployeesLoading(true);
-        const { data } = await api.get('/admin/employee');
+        const { data } = await api.get('/admin/employee', {
+          params: { employmentStatus: employmentStatusFilter },
+        });
         if (!mounted) return;
         setEmployees(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -344,7 +358,7 @@ const HRAttendanceView = () => {
     return () => {
       mounted = false;
     };
-  }, [refreshToken, toast]);
+  }, [employmentStatusFilter, refreshToken, toast]);
 
   useEffect(() => {
     let mounted = true;
@@ -470,6 +484,7 @@ const HRAttendanceView = () => {
         name: employee.name || 'Unknown',
         employeeId: employee.employeeId || employee.professional?.employeeId || '',
         department: employee.department || employee.professional?.department || 'Unassigned',
+        employmentStatus: employee.employmentStatus || employee.status || employee.professional?.employmentStatus || 'active',
       });
     });
     return map;
@@ -483,8 +498,9 @@ const HRAttendanceView = () => {
       return {
         ...row,
         employeeName: row.name || meta?.name || 'Unknown',
-        employeeId: meta?.employeeId || row.userName || row.userId,
-        department: meta?.department || 'Unassigned',
+        employeeId: row.employeeId || meta?.employeeId || row.userName || row.userId,
+        department: row.department || meta?.department || 'Unassigned',
+        employmentStatus: row.employmentStatus || meta?.employmentStatus || 'active',
         statusMeta: getStatusMeta(row.statusCode),
       };
     });
@@ -513,8 +529,9 @@ const HRAttendanceView = () => {
       return {
         ...row,
         employeeName: row.name || meta?.name || 'Unknown',
-        employeeId: meta?.employeeId || row.userName || row.userId,
-        department: meta?.department || 'Unassigned',
+        employeeId: row.employeeId || meta?.employeeId || row.userName || row.userId,
+        department: row.department || meta?.department || 'Unassigned',
+        employmentStatus: row.employmentStatus || meta?.employmentStatus || 'active',
         lateDays: countStatusDays(row.days, 'L'),
       };
     });
@@ -609,8 +626,9 @@ const HRAttendanceView = () => {
           return {
             ...row,
             employeeName: row.name || meta?.name || 'Unknown',
-            employeeId: meta?.employeeId || row.userName || row.userId,
-            department: meta?.department || 'Unassigned',
+            employeeId: row.employeeId || meta?.employeeId || row.userName || row.userId,
+            department: row.department || meta?.department || 'Unassigned',
+            employmentStatus: row.employmentStatus || meta?.employmentStatus || 'active',
             statusMeta: getStatusMeta(row.statusCode),
           };
         })
@@ -638,6 +656,7 @@ const HRAttendanceView = () => {
           'Employee Name': row.employeeName,
           'Employee ID': row.employeeId,
           Department: row.department,
+          'Employee Status': row.employmentStatus === 'inactive' ? 'Inactive' : 'Active',
           Date: row.dateKey,
           'Check In': formatTime(row.checkInAt),
           'Check Out': formatTime(row.checkOutAt),
@@ -654,6 +673,7 @@ const HRAttendanceView = () => {
             'Employee Name': row.employeeName,
             'Employee ID': row.employeeId,
             Department: row.department,
+            'Employee Status': row.employmentStatus === 'inactive' ? 'Inactive' : 'Active',
             Present: 0,
             Absent: 0,
             Late: 0,
@@ -694,6 +714,7 @@ const HRAttendanceView = () => {
         { wch: 24 },
         { wch: 16 },
         { wch: 16 },
+        { wch: 16 },
         { wch: 14 },
         { wch: 12 },
         { wch: 12 },
@@ -704,6 +725,7 @@ const HRAttendanceView = () => {
 
       payrollSheet['!cols'] = [
         { wch: 24 },
+        { wch: 16 },
         { wch: 16 },
         { wch: 16 },
         { wch: 10 },
@@ -963,9 +985,12 @@ const HRAttendanceView = () => {
             </div>
 
             {!filterReportPanelOpen ? (
-              <div className="grid grid-cols-1 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 md:grid-cols-4">
                 <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs">
                   Search: {searchTerm?.trim() ? searchTerm.trim() : 'All employees'}
+                </div>
+                <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs">
+                  Employees: {getEmploymentStatusLabel(employmentStatusFilter)}
                 </div>
                 <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs">
                   Filter period:{' '}
@@ -999,6 +1024,21 @@ const HRAttendanceView = () => {
 
                     <select
                       className="h-10 px-3 text-sm bg-white border rounded-md md:col-span-5 border-slate-200"
+                      value={employmentStatusFilter}
+                      onChange={(event) => {
+                        cacheRef.current.clear();
+                        setEmploymentStatusFilter(event.target.value);
+                      }}
+                    >
+                      {EMPLOYMENT_STATUS_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      className="h-10 px-3 text-sm bg-white border rounded-md md:col-span-5 border-slate-200"
                       value={filterPeriod}
                       onChange={(event) => setFilterPeriod(event.target.value)}
                     >
@@ -1029,6 +1069,9 @@ const HRAttendanceView = () => {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-slate-600">
+                    <span className="px-3 py-1 bg-white border rounded-full border-slate-200">
+                      Employees: {getEmploymentStatusLabel(employmentStatusFilter)}
+                    </span>
                     {activeRange.type === 'today' && <span className="px-3 py-1 bg-white border rounded-full border-slate-200">Date period: Today</span>}
                     {activeRange.type === 'this-week' && <span className="px-3 py-1 bg-white border rounded-full border-slate-200">Date period: This Week</span>}
                     {activeRange.type === 'month' && (
@@ -1142,11 +1185,12 @@ const HRAttendanceView = () => {
 
             {attendanceViewMode === 'table' ? (
               <div className="attendance-records-scroll min-w-0 w-full max-w-full overflow-x-auto overflow-y-auto max-h-[460px]">
-                <table className="w-full min-w-[1080px] text-sm">
+                <table className="w-full min-w-[1180px] text-sm">
                   <thead className="sticky top-0 z-10 bg-slate-50">
                     <tr className="text-xs tracking-wide text-left uppercase text-slate-500">
                       <th className="px-4 py-3">Employee</th>
                       <th className="px-4 py-3">Department</th>
+                      <th className="px-4 py-3">Employee Status</th>
                       <th className="px-4 py-3">Date</th>
                       <th className="px-4 py-3">Check In</th>
                       <th className="px-4 py-3">Check Out</th>
@@ -1165,6 +1209,17 @@ const HRAttendanceView = () => {
                               <div className="font-mono text-xs text-slate-500">{row.employeeId}</div>
                             </td>
                             <td className="px-4 py-3 text-slate-700">{row.department}</td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                                  row.employmentStatus === 'inactive'
+                                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                }`}
+                              >
+                                {row.employmentStatus === 'inactive' ? 'Inactive' : 'Active'}
+                              </span>
+                            </td>
                             <td className="px-4 py-3 text-slate-700">{formatDate(row.dateKey)}</td>
                             <td className="px-4 py-3 text-slate-700">{formatTime(row.checkInAt)}</td>
                             <td className="px-4 py-3 text-slate-700">{formatTime(row.checkOutAt)}</td>
@@ -1325,12 +1380,13 @@ const HRAttendanceView = () => {
             </div>
 
             <div className="attendance-records-scroll min-w-0 overflow-x-auto">
-              <table className="w-full min-w-[980px] text-sm">
+              <table className="w-full min-w-[1080px] text-sm">
                 <thead className="sticky top-0 z-10 bg-slate-50">
                   <tr className="text-xs tracking-wide text-left uppercase text-slate-500">
                     <th className="px-4 py-3">Employee Name</th>
                     <th className="px-4 py-3">Employee ID</th>
                     <th className="px-4 py-3">Department</th>
+                    <th className="px-4 py-3">Employee Status</th>
                     <th className="px-4 py-3">Present Days</th>
                     <th className="px-4 py-3">Leave Days</th>
                     <th className="px-4 py-3">Late Days</th>
@@ -1344,6 +1400,17 @@ const HRAttendanceView = () => {
                         <td className="px-4 py-3 font-medium text-slate-900">{row.employeeName}</td>
                         <td className="px-4 py-3 font-mono text-xs text-slate-700">{row.employeeId}</td>
                         <td className="px-4 py-3 text-slate-700">{row.department}</td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                              row.employmentStatus === 'inactive'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            }`}
+                          >
+                            {row.employmentStatus === 'inactive' ? 'Inactive' : 'Active'}
+                          </span>
+                        </td>
                         <td className="px-4 py-3 text-emerald-700">{row.P || 0}</td>
                         <td className="px-4 py-3 text-rose-700">{row.A || 0}</td>
                         <td className="px-4 py-3 text-amber-700">{row.lateDays || 0}</td>

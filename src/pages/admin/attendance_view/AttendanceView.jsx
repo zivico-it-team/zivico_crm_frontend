@@ -51,6 +51,12 @@ const getStatusLabel = (code) => {
   }
 };
 
+const EMPLOYMENT_STATUS_OPTIONS = [
+  { value: 'active', label: 'Active Employees' },
+  { value: 'inactive', label: 'Inactive Employees' },
+  { value: 'all', label: 'All Employees' },
+];
+
 const formatDateLabel = (date) =>
   date.toLocaleDateString('en-US', {
     weekday: 'short',
@@ -132,6 +138,7 @@ const AttendanceView = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [attendanceRows, setAttendanceRows] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [employmentStatusFilter, setEmploymentStatusFilter] = useState('active');
   const [selectedDay, setSelectedDay] = useState(null);
   const [loading, setLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -157,6 +164,7 @@ const AttendanceView = () => {
             year: currentDate.getFullYear(),
             month: currentDate.getMonth() + 1,
             search: searchTerm || undefined,
+            employmentStatus: employmentStatusFilter,
           },
         });
 
@@ -175,7 +183,7 @@ const AttendanceView = () => {
     };
 
     loadAttendance();
-  }, [currentDate, searchTerm, toast]);
+  }, [currentDate, employmentStatusFilter, searchTerm, toast]);
 
   const getStatus = (row, day) => row.days?.[String(day)] || '-';
 
@@ -226,6 +234,7 @@ const AttendanceView = () => {
           year: currentDate.getFullYear(),
           month: currentDate.getMonth() + 1,
           search: searchTerm || undefined,
+          employmentStatus: employmentStatusFilter,
         },
       });
 
@@ -425,6 +434,17 @@ const AttendanceView = () => {
                       onChange={(event) => setSearchTerm(event.target.value)}
                     />
                   </div>
+                  <select
+                    className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-700 sm:w-48"
+                    value={employmentStatusFilter}
+                    onChange={(event) => setEmploymentStatusFilter(event.target.value)}
+                  >
+                    {EMPLOYMENT_STATUS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                   <Button
                     type="button"
                     variant="outline"

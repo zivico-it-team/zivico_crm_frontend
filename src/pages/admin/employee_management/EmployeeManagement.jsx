@@ -325,7 +325,7 @@ const EmployeeManagement = () => {
     try {
       const [employeesResult, managersResult, hierarchyResult] =
         await Promise.allSettled([
-          api.get("/admin/employee"),
+          api.get("/admin/employee", { params: { employmentStatus: "all" } }),
           api.get("/admin/manager"),
           api.get("/hierarchy/overview"),
         ]);
