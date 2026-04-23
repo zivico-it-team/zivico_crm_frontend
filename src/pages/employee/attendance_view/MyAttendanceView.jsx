@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet';
 import MainLayout from '@/components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
 import { Calendar, Filter, Timer, Download, RefreshCw } from 'lucide-react';
 
 // Components
@@ -21,7 +20,6 @@ import { VIEW_MODES } from './utils/attendanceConfig';
 
 const MyAttendanceView = () => {
   const { currentUser } = useAuth();
-  const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState(VIEW_MODES.CALENDAR);
 
@@ -32,13 +30,12 @@ const MyAttendanceView = () => {
     calendarDays,
     isLoading: attendanceLoading,
     loadAttendanceData,
-    deleteAttendanceRecord,
     getCurrentMonthRecords,
     exportToCSV
   } = useAttendanceData(currentUser, currentDate);
 
   const {
-    deleteBreakRecord,
+    loadBreakData,
     getCurrentMonthBreaks
   } = useBreakData(currentUser, currentDate);
 
@@ -61,8 +58,8 @@ const MyAttendanceView = () => {
   };
 
   // Handle refresh
-  const handleRefresh = () => {
-    loadAttendanceData();
+  const handleRefresh = async () => {
+    await Promise.all([loadAttendanceData(), loadBreakData()]);
   };
 
   // Handle month navigation
@@ -84,27 +81,6 @@ const MyAttendanceView = () => {
 
   const handleToday = () => {
     setCurrentDate(new Date());
-  };
-
-  const handleDeleteAttendance = async (recordId) => {
-    if (!recordId) return;
-
-    if (window.confirm('Are you sure you want to delete this attendance record?')) {
-      const deleted = await deleteAttendanceRecord(recordId);
-      toast({
-        title: deleted ? 'Deleted' : 'Delete failed',
-        description: deleted
-          ? 'Attendance record deleted successfully'
-          : 'Unable to delete attendance record',
-        variant: deleted ? 'default' : 'destructive',
-      });
-    }
-  };
-
-  const handleDeleteBreak = (breakId) => {
-    if (window.confirm('Are you sure you want to delete this break record?')) {
-      deleteBreakRecord(breakId);
-    }
   };
 
   if (attendanceLoading) {
@@ -249,13 +225,10 @@ const MyAttendanceView = () => {
           ) : viewMode === VIEW_MODES.LIST ? (
             <AttendanceList
               records={currentMonthRecords}
-              onDeleteRecord={handleDeleteAttendance}
-              currentMonthString={currentMonthString}
             />
           ) : (
             <BreakRecords
               breaks={currentMonthBreaks}
-              onDeleteBreak={handleDeleteBreak}
             />
           )}
         </div>

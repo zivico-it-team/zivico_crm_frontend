@@ -139,25 +139,25 @@ const BirthdayWelcomeBanner = ({
 
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-start gap-4">
-            <span className="birthday-cake-pulse flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-white ring-1 ring-white/30 backdrop-blur">
+            <span className="birthday-cake-pulse flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-slate-950 ring-1 ring-white/30 backdrop-blur">
               <Cake className="h-6 w-6" />
             </span>
             <div className="min-w-0">
-              <div className="birthday-badge-spark mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/25">
+              <div className="birthday-badge-spark mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-slate-950 ring-1 ring-white/25">
                 <Sparkles className="h-3.5 w-3.5" />
                 Birthday Today
               </div>
-              <h2 className="text-xl font-bold text-white sm:text-2xl">
+              <h2 className="text-xl font-bold text-slate-950 sm:text-2xl">
                 {birthdayTitle || `Happy Birthday, ${displayName}!`}
               </h2>
-              <p className="mt-1 max-w-3xl text-sm font-medium text-white/90">
+              <p className="mt-1 max-w-3xl text-sm font-medium text-slate-900">
                 {birthdayDescription}
               </p>
             </div>
           </div>
 
           {showDate ? (
-            <span className="w-fit rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/25 backdrop-blur">
+            <span className="w-fit rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-slate-950 ring-1 ring-white/25 backdrop-blur">
               {dateLabel}
             </span>
           ) : null}

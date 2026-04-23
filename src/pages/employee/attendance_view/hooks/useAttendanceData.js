@@ -33,6 +33,20 @@ const toDateKey = (date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
+const isWithinLastDays = (date, days = 5) => {
+  const parsedDate = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(parsedDate.getTime())) return false;
+
+  const startDate = new Date();
+  startDate.setHours(0, 0, 0, 0);
+  startDate.setDate(startDate.getDate() - (days - 1));
+
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999);
+
+  return parsedDate >= startDate && parsedDate <= endDate;
+};
+
 const normalizeCalendarData = (calendarDays, recordMap) =>
   Object.values(calendarDays || {}).map((day) => {
     const record = recordMap.get(day.dateKey);
@@ -203,7 +217,9 @@ export const useAttendanceData = (currentUser, currentDate) => {
   }, [loadAttendanceData]);
 
   const getCurrentMonthRecords = useCallback(() => {
-    return attendanceData.filter((record) => record.status !== 'off');
+    return attendanceData.filter((record) => (
+      record.status !== 'off' && isWithinLastDays(record.date, 5)
+    ));
   }, [attendanceData]);
 
   const exportToCSV = useCallback(() => {
