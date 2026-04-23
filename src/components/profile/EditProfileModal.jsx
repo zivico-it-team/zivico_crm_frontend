@@ -14,6 +14,7 @@ const EditProfileModal = ({
   hideEmergencySection = false,
   hideProfessionalSection = false,
   showAdminBasicProfessionalFields = false,
+  showNicField = false,
   showUsernameField = false,
 }) => {
   const [formData, setFormData] = useState({
@@ -22,6 +23,7 @@ const EditProfileModal = ({
       email: '',
       phone: '',
       dob: '',
+      nic: '',
       gender: '',
       nationality: '',
       address: {
@@ -117,6 +119,7 @@ const EditProfileModal = ({
             onChange={handlePersonalInfoChange}
             hidePasswordSection={hidePasswordSection}
             hideEmergencySection={hideEmergencySection}
+            showNicField={showNicField}
             showUsernameField={showUsernameField}
             onPasswordChange={setPasswordData}
           />

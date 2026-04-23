@@ -393,7 +393,7 @@ const AttendanceView = () => {
   return (
     <>
       <Helmet>
-        <title>Attendance Tracker - HRMS</title>
+        <title>Attendance Tracker - CRM</title>
       </Helmet>
       <MainLayout>
         <div className="px-2 mx-auto max-w-screen-2xl sm:px-4">
@@ -496,7 +496,7 @@ const AttendanceView = () => {
                               {member.name || 'Unknown'}
                             </div>
                             <div className="text-[11px] text-gray-500 truncate max-w-[150px]" title={member.email}>
-                              {member.email || member.userName || 'No email'}
+                              {member.userName || member.email || 'No email'}
                             </div>
                           </td>
                           {daysArray.map((day) => {

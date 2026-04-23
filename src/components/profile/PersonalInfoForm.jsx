@@ -9,6 +9,7 @@ const PersonalInfoForm = ({
   onChange,
   hidePasswordSection = false,
   hideEmergencySection = false,
+  showNicField = false,
   showUsernameField = false,
   onPasswordChange = () => {},
 }) => {
@@ -122,6 +123,17 @@ const PersonalInfoForm = ({
             placeholder="Enter your phone number"
           />
         </div>
+        {showNicField && (
+          <div className="space-y-2">
+            <Label htmlFor="nic">NIC</Label>
+            <Input
+              id="nic"
+              value={formData.personalInfo.nic || ''}
+              onChange={(e) => onChange('personalInfo', 'nic', e.target.value)}
+              placeholder="Enter your NIC number"
+            />
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="dob">Date of Birth</Label>
           <Input 

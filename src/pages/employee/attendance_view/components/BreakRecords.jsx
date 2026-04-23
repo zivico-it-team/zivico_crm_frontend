@@ -3,21 +3,16 @@ import {
   Timer, 
   AlertCircle, 
   PlayCircle, 
-  Trash2, 
   Coffee, 
   Utensils, 
   Users,
   Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { formatDateTime, formatDurationSeconds } from '../utils/dateFormatters';
 import { BREAK_STATUS_COLORS } from '../utils/attendanceConfig';
 
-export const BreakRecords = ({ 
-  breaks, 
-  onDeleteBreak 
-}) => {
+export const BreakRecords = ({ breaks }) => {
   const getIcon = (iconName) => {
     switch(iconName) {
       case 'Coffee': return Coffee;
@@ -42,6 +37,14 @@ export const BreakRecords = ({
     return BREAK_STATUS_COLORS[status] || BREAK_STATUS_COLORS.default;
   };
 
+  const formatDateLabel = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
   const getColorClasses = (color) => {
     switch(color) {
       case 'orange':
@@ -64,10 +67,7 @@ export const BreakRecords = ({
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Break Records</h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-              Showing {breaks.length} breaks for {breaks.length > 0 ? 
-                new Date(breaks[0].date).toLocaleString('default', { month: 'long', year: 'numeric' }) : 
-                'this month'
-              }
+              Showing {breaks.length} breaks from the last 5 days
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -114,7 +114,10 @@ export const BreakRecords = ({
                           )} />
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                              {formatDateLabel(breakItem.date)}
+                            </span>
                             <div className="font-medium text-gray-900 dark:text-slate-100">{breakItem.title}</div>
                             {breakItem.active && (
                               <div className="flex items-center gap-1 text-xs bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full">
@@ -185,20 +188,10 @@ export const BreakRecords = ({
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="text-sm text-gray-600 dark:text-slate-300">
-                        Total Duration: <span className="font-semibold text-gray-900 dark:text-slate-100">
-                          {formatDurationSeconds(breakItem.durationSeconds)}
-                        </span>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => onDeleteBreak(breakItem.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    <div className="mt-3 text-sm text-gray-600 dark:text-slate-300">
+                      Total Duration: <span className="font-semibold text-gray-900 dark:text-slate-100">
+                        {formatDurationSeconds(breakItem.durationSeconds)}
+                      </span>
                     </div>
                     
                     {breakItem.exceededSeconds > 0 && (
@@ -220,7 +213,7 @@ export const BreakRecords = ({
           <div className="p-8 text-center">
             <Timer className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-slate-600" />
             <h3 className="mb-1 text-lg font-medium text-gray-700 dark:text-slate-200">No Break Records</h3>
-            <p className="text-gray-500 dark:text-slate-400">You haven't taken any breaks this month</p>
+            <p className="text-gray-500 dark:text-slate-400">You haven't taken any breaks in the last 5 days</p>
             <p className="mt-1 text-sm text-gray-400 dark:text-slate-500">
               Start a break from Quick Actions to see records here
             </p>

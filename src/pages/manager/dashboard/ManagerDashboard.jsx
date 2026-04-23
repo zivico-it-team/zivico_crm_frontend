@@ -28,11 +28,6 @@ const getTodayParts = () => {
 
 const getEmployeeId = (employee) => employee?._id || employee?.id || '';
 
-const getManagerKeys = (manager) =>
-  [manager?._id, manager?.id, manager?.name, manager?.email, manager?.userName]
-    .filter(Boolean)
-    .map((value) => String(value).trim().toLowerCase());
-
 const normalizeText = (value) => String(value || '').trim().toLowerCase();
 
 const filterTeamMembers = (employees, manager) => {
@@ -40,20 +35,14 @@ const filterTeamMembers = (employees, manager) => {
     return [];
   }
 
-  const managerKeys = getManagerKeys(manager);
   const managerDepartment = normalizeText(manager?.professional?.department);
   const managerTeam = normalizeText(manager?.professional?.teamName);
 
-  const directReports = employees.filter((employee) => {
-    const reportingManager = normalizeText(employee?.professional?.reportingManager);
-    return reportingManager && managerKeys.includes(reportingManager);
-  });
-
-  if (directReports.length > 0) {
-    return directReports;
+  if (!managerDepartment && !managerTeam) {
+    return [];
   }
 
-  const departmentMatches = employees.filter((employee) => {
+  return employees.filter((employee) => {
     const employeeDepartment = normalizeText(employee?.professional?.department);
     const employeeTeam = normalizeText(employee?.professional?.teamName);
 
@@ -67,8 +56,6 @@ const filterTeamMembers = (employees, manager) => {
 
     return false;
   });
-
-  return departmentMatches.length > 0 ? departmentMatches : employees;
 };
 
 const formatDateRange = (fromDate, toDate) => {
@@ -165,7 +152,7 @@ const ManagerDashboard = () => {
         const { year, month, dayKey } = getTodayParts();
         const [employeesResult, pendingLeavesResult, teamFilesResult, attendanceResult] =
           await Promise.allSettled([
-            api.get('/admin/employee'),
+            api.get('/team/members', { params: { page: 1, limit: 200 } }),
             api.get('/leave/pending'),
             api.get('/team-files', {
               params: { page: 1, limit: 50 },
@@ -176,8 +163,8 @@ const ManagerDashboard = () => {
           ]);
 
         const allEmployees =
-          employeesResult.status === 'fulfilled' && Array.isArray(employeesResult.value.data)
-            ? employeesResult.value.data
+          employeesResult.status === 'fulfilled' && Array.isArray(employeesResult.value.data?.members)
+            ? employeesResult.value.data.members
             : [];
 
         const teamMembers = filterTeamMembers(allEmployees, currentUser);
@@ -189,15 +176,13 @@ const ManagerDashboard = () => {
                 const leaveUserId =
                   leave?.user?._id || leave?.user?.id || leave?.user || leave?.userId || '';
 
-                return teamMemberIds.size === 0 || teamMemberIds.has(String(leaveUserId));
+                return teamMemberIds.has(String(leaveUserId));
               })
             : [];
 
         const attendanceRows =
           attendanceResult.status === 'fulfilled' && Array.isArray(attendanceResult.value.data?.rows)
-            ? attendanceResult.value.data.rows.filter(
-                (row) => teamMemberIds.size === 0 || teamMemberIds.has(String(row.userId))
-              )
+            ? attendanceResult.value.data.rows.filter((row) => teamMemberIds.has(String(row.userId)))
             : [];
 
         const todayStatuses = attendanceRows.map((row) => row.days?.[dayKey] || '-');

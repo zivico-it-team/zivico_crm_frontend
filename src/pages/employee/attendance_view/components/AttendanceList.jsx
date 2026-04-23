@@ -1,15 +1,10 @@
 import React from 'react';
-import { Calendar, Trash2 } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { formatTime } from '../utils/dateFormatters';
 import { STATUS_COLORS } from '../utils/attendanceConfig';
 
-export const AttendanceList = ({ 
-  records, 
-  onDeleteRecord,
-  currentMonthString 
-}) => {
+export const AttendanceList = ({ records }) => {
   const getStatusLabel = (status) => {
     if (!status) return 'Unknown';
     if (status === 'leave') return 'On Leave';
@@ -29,7 +24,7 @@ export const AttendanceList = ({
       <div className="p-6 border-b border-gray-100 dark:border-slate-700">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Attendance Records</h2>
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-          Showing {records.length} records for {currentMonthString}
+          Showing {records.length} records from the last 5 days
         </p>
       </div>
       
@@ -72,17 +67,6 @@ export const AttendanceList = ({
                           </span>
                         )}
                       </div>
-                      
-                      {/* {record.id && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => onDeleteRecord(record.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )} */}
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 mt-3">
@@ -116,7 +100,7 @@ export const AttendanceList = ({
         }) : (
           <div className="p-8 text-center">
             <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-slate-600" />
-            <p className="text-gray-500 dark:text-slate-400">No attendance records for this month</p>
+            <p className="text-gray-500 dark:text-slate-400">No attendance records in the last 5 days</p>
             <p className="mt-1 text-sm text-gray-400 dark:text-slate-500">Start by checking in from your dashboard</p>
           </div>
         )}

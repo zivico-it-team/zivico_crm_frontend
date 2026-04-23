@@ -96,6 +96,7 @@ const formatDuration = (seconds) => {
 const TeamAttendanceView = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [attendanceRows, setAttendanceRows] = useState([]);
+  const [attendanceScope, setAttendanceScope] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDay, setSelectedDay] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -117,9 +118,11 @@ const TeamAttendanceView = () => {
           },
         });
         setAttendanceRows(Array.isArray(data?.rows) ? data.rows : []);
+        setAttendanceScope(data?.scope || null);
       } catch (error) {
         console.error('Error loading team attendance:', error);
         setAttendanceRows([]);
+        setAttendanceScope(null);
         toast({
           title: 'Attendance load failed',
           description: error.response?.data?.message || 'Unable to load team attendance data.',
@@ -178,7 +181,7 @@ const TeamAttendanceView = () => {
   return (
     <>
       <Helmet>
-        <title>Team Attendance - HRMS</title>
+        <title>Team Attendance - CRM</title>
       </Helmet>
       <MainLayout>
         <div className="px-2 mx-auto max-w-screen-2xl sm:px-4">
@@ -186,7 +189,10 @@ const TeamAttendanceView = () => {
             <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
               <div>
                 <h1 className="text-lg font-bold text-gray-900 sm:text-xl">Team Attendance</h1>
-                <p className="text-xs text-gray-500 sm:text-sm">Database attendance records only</p>
+                <p className="text-xs text-gray-500 sm:text-sm">
+                  Department attendance records only
+                  {attendanceScope?.label ? ` - ${attendanceScope.label}` : ''}
+                </p>
               </div>
               <div className="text-xs text-gray-500">
                 Showing {attendanceRows.length} employees
@@ -244,7 +250,7 @@ const TeamAttendanceView = () => {
                           <td className="sticky left-0 z-10 p-2 text-left bg-white border-r shadow-sm">
                             <div className="font-medium truncate max-w-[150px]">{member.name || 'Unknown'}</div>
                             <div className="text-[11px] text-gray-500 truncate max-w-[150px]">
-                              {member.email || member.userName || 'No email'}
+                              {member.userName || member.email || 'No email'}
                             </div>
                           </td>
                           {daysArray.map((day) => {
@@ -284,7 +290,7 @@ const TeamAttendanceView = () => {
 
               {!loading && attendanceRows.length === 0 && (
                 <div className="py-10 text-sm text-center text-gray-500">
-                  No attendance records found in the database.
+                  No attendance records found for your department.
                 </div>
               )}
 

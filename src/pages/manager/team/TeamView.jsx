@@ -31,20 +31,14 @@ const filterTeamMembers = (employees, manager) => {
     return [];
   }
 
-  const managerKeys = getManagerKeys(manager);
   const managerDepartment = normalizeText(manager?.professional?.department);
   const managerTeam = normalizeText(manager?.professional?.teamName);
 
-  const directReports = employees.filter((employee) => {
-    const reportingManager = normalizeText(employee?.professional?.reportingManager);
-    return reportingManager && managerKeys.includes(reportingManager);
-  });
-
-  if (directReports.length > 0) {
-    return directReports;
+  if (!managerDepartment && !managerTeam) {
+    return [];
   }
 
-  const departmentMatches = employees.filter((employee) => {
+  return employees.filter((employee) => {
     const employeeDepartment = normalizeText(employee?.professional?.department);
     const employeeTeam = normalizeText(employee?.professional?.teamName);
 
@@ -58,8 +52,6 @@ const filterTeamMembers = (employees, manager) => {
 
     return false;
   });
-
-  return departmentMatches.length > 0 ? departmentMatches : employees;
 };
 
 const buildStatusMap = (activeMembers, onLeaveMembers) => {

@@ -75,6 +75,7 @@ const mapApiUserToProfile = (user, fallbackProfile) => {
       email: user?.email || '',
       phone: user?.phone || '',
       dob: toDateInputValue(user?.dob),
+      nic: user?.nic || '',
       gender: user?.gender || '',
       nationality: user?.nationality || '',
       address: {
@@ -127,6 +128,7 @@ const mapProfileToApiPayload = (profile) => {
     userName: personal?.username || '',
     phone: personal?.phone || '',
     dob: personal?.dob || null,
+    nic: personal?.nic || '',
     gender: personal?.gender || '',
     nationality: personal?.nationality || '',
     addressLine: address?.street || '',
@@ -180,6 +182,7 @@ const ProfileView = () => {
       email: '',
       phone: '',
       dob: '',
+      nic: '',
       gender: '',
       maritalStatus: '',
       nationality: '',
@@ -217,6 +220,7 @@ const ProfileView = () => {
         username: currentUser?.userName || currentUser?.username || '',
         email: currentUser?.email || '',
         phone: currentUser?.phone || '',
+        nic: currentUser?.nic || '',
       },
       professionalInfo: {
         ...defaultProfile.professionalInfo,
@@ -518,6 +522,7 @@ const ProfileView = () => {
                       { label: 'Full Name', value: profile.personalInfo.fullName },
                       { label: 'Username', value: profile.personalInfo.username },
                       { label: 'Phone Number', value: profile.personalInfo.phone },
+                      { label: 'NIC', value: profile.personalInfo.nic },
                       { label: 'Date of Birth', value: profile.personalInfo.dob },
                       { label: 'Gender', value: profile.personalInfo.gender },
                       { label: 'City', value: profile.personalInfo.address.city },
@@ -610,6 +615,7 @@ const ProfileView = () => {
           onClose={() => setIsEditModalOpen(false)}
           onSave={handleUpdateProfile}
           initialData={profile}
+          showNicField
           showUsernameField
         />
       </MainLayout>

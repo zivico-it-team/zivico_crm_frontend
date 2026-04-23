@@ -9,9 +9,11 @@ import {
   RefreshCcw,
   Search,
   ShieldCheck,
+  Trash2,
   UploadCloud,
 } from 'lucide-react';
 
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import MainLayout from '@/components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -110,6 +112,8 @@ const ImportantDocumentsView = ({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deletingDocumentId, setDeletingDocumentId] = useState('');
+  const [documentToDelete, setDocumentToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     title: '',
@@ -260,6 +264,36 @@ const ImportantDocumentsView = ({
         description: error.response?.data?.message || 'Unable to update read status.',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleDeleteDocument = async () => {
+    if (!canUpload || !documentToDelete?.id) return;
+
+    const documentId = documentToDelete.id;
+
+    try {
+      setDeletingDocumentId(documentId);
+      await api.delete(`/important-documents/${documentId}`);
+
+      setDocuments((previous) =>
+        previous.filter((document) => document.id !== documentId)
+      );
+      setDocumentToDelete(null);
+
+      toast({
+        title: 'Important document deleted',
+        description: 'The document card and its notifications were removed.',
+      });
+    } catch (error) {
+      console.error('Error deleting important document:', error);
+      toast({
+        title: 'Delete failed',
+        description: error.response?.data?.message || 'Unable to delete important document.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingDocumentId('');
     }
   };
 
@@ -456,15 +490,28 @@ const ImportantDocumentsView = ({
                         </div>
                       </div>
 
-                      <Button
-                        type="button"
-                        variant={isUnread ? 'default' : 'outline'}
-                        onClick={() => handleOpenDocument(document)}
-                        className="shrink-0"
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        Open File
-                      </Button>
+                      <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                        <Button
+                          type="button"
+                          variant={isUnread ? 'default' : 'outline'}
+                          onClick={() => handleOpenDocument(document)}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          Open File
+                        </Button>
+                        {canUpload ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setDocumentToDelete(document)}
+                            disabled={deletingDocumentId === document.id}
+                            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            {deletingDocumentId === document.id ? 'Deleting...' : 'Delete'}
+                          </Button>
+                        ) : null}
+                      </div>
                     </div>
 
                     <div className="mt-4 grid grid-cols-1 gap-3 text-xs text-slate-500 sm:grid-cols-2 xl:grid-cols-4">
@@ -495,6 +542,18 @@ const ImportantDocumentsView = ({
             </div>
           )}
         </div>
+
+        <DeleteConfirmDialog
+          isOpen={Boolean(documentToDelete)}
+          onClose={() => {
+            if (!deletingDocumentId) {
+              setDocumentToDelete(null);
+            }
+          }}
+          onConfirm={handleDeleteDocument}
+          title="Delete Important Document"
+          description={`Are you sure you want to delete "${getDocumentTitle(documentToDelete || {})}"? This action cannot be undone.`}
+        />
       </MainLayout>
     </>
   );
